@@ -108,6 +108,17 @@ class ApiService extends ChangeNotifier {
     return [];
   }
 
+  Future<List> getChannels({int limit = 100}) async {
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/api/channels?limit=$limit'), headers: headers);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return data is List ? data : (data['data'] ?? []);
+      }
+    } catch (_) {}
+    return [];
+  }
+
   Future<List> getCategories() async {
     try {
       final res = await http.get(Uri.parse('$baseUrl/api/categories'), headers: headers);

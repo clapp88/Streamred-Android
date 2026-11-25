@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import 'categories_screen.dart';
+import 'streamers_screen.dart';
 import 'shorts_viewer.dart';
 import 'channel_screen.dart';
 import 'stream_screen.dart';
@@ -68,6 +69,10 @@ class _HomeScreenState extends State<HomeScreen> {
           TextButton(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoriesScreen())),
             child: const Text('Categories', style: TextStyle(fontSize: 16)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StreamersScreen())),
+            child: const Text('Streamers', style: TextStyle(fontSize: 16)),
           ),
         ],
       ),

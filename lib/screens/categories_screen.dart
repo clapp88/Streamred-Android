@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import 'stream_screen.dart';
@@ -71,7 +73,19 @@ class _CategoryBrowseScreenState extends State<CategoryBrowseScreen> {
 
   Future<void> load() async {
     final list = await context.read<ApiService>().getCategoryContent(widget.name);
-    if (mounted) setState(() { items = list; loading = false; });
+    final valid = <dynamic>[];
+    for (final item in list) {
+      final url = item['videoUrl'] ?? item['hlsUrl'] ?? item['url'];
+      if (url == null) continue;
+      final full = url.toString().startsWith('http') ? url.toString() : 'https://88streams.st$url';
+      try {
+        final res = await http.head(Uri.parse(full)).timeout(const Duration(seconds: 4));
+        if (res.statusCode >= 200 && res.statusCode < 400) {
+          valid.add(item);
+        }
+      } catch (_) {}
+    }
+    if (mounted) setState(() { items = valid; loading = false; });
   }
 
   @override
