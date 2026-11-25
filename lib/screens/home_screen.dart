@@ -14,7 +14,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List streams = [];
-  List videos = [];
+  List shorts = [];
   bool loading = true;
 
   @override
@@ -25,9 +25,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> load() async {
     final api = context.read<ApiService>();
-    final s = await api.getStreams();
-    final v = await api.getVideos();
-    if (mounted) setState(() { streams = s; videos = v; loading = false; });
+    final s = await api.getStreams(limit: 30);
+    final sh = await api.getShorts(limit: 20);
+    if (mounted) {
+      setState(() {
+        streams = s;
+        shorts = sh;
+        loading = false;
+      });
+    }
   }
 
   void openItem(dynamic item) {
@@ -45,6 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final live = streams.where((s) => s['isLive'] == true).toList();
+    final scheduled = streams.where((s) => s['isLive'] != true).toList();
+
     return Scaffold(
       appBar: AppBar(title: const Text('StreamRed')),
       body: loading
@@ -53,15 +62,19 @@ class _HomeScreenState extends State<HomeScreen> {
               onRefresh: load,
               child: ListView(
                 children: [
-                  if (streams.isNotEmpty) ...[
+                  if (live.isNotEmpty) ...[
                     const Padding(padding: EdgeInsets.fromLTRB(16, 16, 16, 8), child: Text('Live Now', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
-                    ...streams.map((s) => _Card(data: s, onTap: () => openItem(s), onChannel: () => openChannel(s['channelName']))),
+                    ...live.map((s) => _Card(data: s, onTap: () => openItem(s), onChannel: () => openChannel(s['channelName']))),
                   ],
-                  if (videos.isNotEmpty) ...[
-                    const Padding(padding: EdgeInsets.fromLTRB(16, 24, 16, 8), child: Text('Videos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
-                    ...videos.map((v) => _Card(data: v, isLive: false, onTap: () => openItem(v), onChannel: () => openChannel(v['channelName']))),
+                  if (scheduled.isNotEmpty) ...[
+                    const Padding(padding: EdgeInsets.fromLTRB(16, 24, 16, 8), child: Text('Scheduled', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+                    ...scheduled.map((s) => _Card(data: s, isLive: false, onTap: () => openItem(s), onChannel: () => openChannel(s['channelName']))),
                   ],
-                  if (streams.isEmpty && videos.isEmpty)
+                  if (shorts.isNotEmpty) ...[
+                    const Padding(padding: EdgeInsets.fromLTRB(16, 24, 16, 8), child: Text('Shorts', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+                    ...shorts.map((sh) => _Card(data: sh, isLive: false, isShort: true, onTap: () => openItem(sh), onChannel: () => openChannel(sh['channelName']))),
+                  ],
+                  if (live.isEmpty && scheduled.isEmpty && shorts.isEmpty)
                     const Padding(padding: EdgeInsets.all(48), child: Center(child: Text('No content right now'))),
                 ],
               ),
@@ -73,9 +86,10 @@ class _HomeScreenState extends State<HomeScreen> {
 class _Card extends StatelessWidget {
   final Map data;
   final bool isLive;
+  final bool isShort;
   final VoidCallback onTap;
   final VoidCallback onChannel;
-  const _Card({required this.data, this.isLive = true, required this.onTap, required this.onChannel});
+  const _Card({required this.data, this.isLive = true, this.isShort = false, required this.onTap, required this.onChannel});
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +107,7 @@ class _Card extends StatelessWidget {
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                 child: AspectRatio(
-                  aspectRatio: 16 / 9,
+                  aspectRatio: isShort ? 9 / 16 : 16 / 9,
                   child: CachedNetworkImage(
                     imageUrl: thumbUrl,
                     fit: BoxFit.cover,
@@ -103,7 +117,7 @@ class _Card extends StatelessWidget {
                 ),
               )
             else
-              Container(height: 180, color: Colors.grey[900], child: const Center(child: Icon(Icons.videocam, size: 40))),
+              Container(height: isShort ? 200 : 180, color: Colors.grey[900], child: const Center(child: Icon(Icons.videocam, size: 40))),
             Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
@@ -112,8 +126,10 @@ class _Card extends StatelessWidget {
                     onTap: onChannel,
                     child: CircleAvatar(
                       radius: 18,
-                      backgroundImage: data['avatar'] != null ? NetworkImage('https://88streams.st${data['avatar']}') : null,
-                      child: data['avatar'] == null ? const Icon(Icons.person, size: 18) : null,
+                      backgroundImage: data['avatar'] != null || data['channelAvatar'] != null
+                          ? NetworkImage('https://88streams.st${data['avatar'] ?? data['channelAvatar']}')
+                          : null,
+                      child: (data['avatar'] == null && data['channelAvatar'] == null) ? const Icon(Icons.person, size: 18) : null,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -130,6 +146,7 @@ class _Card extends StatelessWidget {
                     ),
                   ),
                   if (isLive) const Chip(label: Text('LIVE', style: TextStyle(color: Colors.white, fontSize: 10)), backgroundColor: Colors.red, visualDensity: VisualDensity.compact),
+                  if (isShort) const Chip(label: Text('SHORT', style: TextStyle(color: Colors.white, fontSize: 10)), backgroundColor: Colors.purple, visualDensity: VisualDensity.compact),
                 ],
               ),
             ),

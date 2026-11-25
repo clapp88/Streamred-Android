@@ -104,6 +104,17 @@ class ApiService extends ChangeNotifier {
     return [];
   }
 
+  Future<List> getShorts({int limit = 20}) async {
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/api/shorts?limit=$limit'), headers: headers);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return data is List ? data : (data['data'] ?? []);
+      }
+    } catch (_) {}
+    return [];
+  }
+
   Future<Map> search(String query) async {
     try {
       final res = await http.get(Uri.parse('$baseUrl/api/search?q=${Uri.encodeComponent(query)}&limit=40'), headers: headers);

@@ -1,9 +1,10 @@
-# StreamRed Android v1.12
+# StreamRed Android v1.13
 
-## Fix
-- **Picture-in-Picture now shows only the video**
-  - The title bar is hidden when the app enters PiP mode
-  - Video fills the floating window instead of being covered by the header
+## New
+- **Shorts section on the homepage**
+  - Order: Live streams → Scheduled streams → Shorts
+  - Shorts show with a vertical thumbnail and a “SHORT” badge
+  - Tapping a short opens it in the player
 
 ## Build
 ```bash
