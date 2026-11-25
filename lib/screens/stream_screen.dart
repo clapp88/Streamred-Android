@@ -26,6 +26,7 @@ class MiniPlayer {
     currentId = id;
     currentData = data;
     controller = VideoPlayerController.networkUrl(Uri.parse(url));
+    final isLive = data['isLive'] == true || data['hlsUrl'] != null;
     chewie = ChewieController(
       videoPlayerController: controller!,
       autoPlay: true,
@@ -34,6 +35,7 @@ class MiniPlayer {
       allowFullScreen: true,
       allowMuting: true,
       showControlsOnInitialize: true,
+      isLive: isLive,
     );
     isVisible = true;
   }
@@ -68,9 +70,10 @@ class _StreamScreenState extends State<StreamScreen> with WidgetsBindingObserver
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     chatService = ChatService();
-    final url = widget.data['hlsUrl'] ?? widget.data['videoUrl'] ?? widget.data['url'];
+    final url = widget.data['hlsUrl'] ?? widget.data['videoUrl'] ?? widget.data['url'] ?? widget.data['playbackUrl'];
     if (url != null && url.toString().isNotEmpty && url.toString() != 'null') {
-      MiniPlayer.start(widget.nanoId, widget.data, url.toString());
+      final full = url.toString().startsWith('http') ? url.toString() : 'https://88streams.st$url';
+      MiniPlayer.start(widget.nanoId, widget.data, full);
     }
     _startChat();
   }

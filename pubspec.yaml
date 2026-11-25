@@ -1,7 +1,7 @@
 name: streamred_android
 description: 88 Streams mobile app
 publish_to: 'none'
-version: 1.32.0+15
+version: 1.33.0+16
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
