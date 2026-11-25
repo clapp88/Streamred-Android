@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class VodPlayerScreen extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -12,6 +13,9 @@ class VodPlayerScreen extends StatefulWidget {
 }
 
 class _VodPlayerScreenState extends State<VodPlayerScreen> {
+  static const _pip = MethodChannel('com.streamred.app/pip');
+  bool inPip = false;
+  bool _autoPipOn = false;
   VideoPlayerController? controller;
   bool initialized = false;
   bool failed = false;
@@ -26,6 +30,17 @@ class _VodPlayerScreenState extends State<VodPlayerScreen> {
   void initState() {
     super.initState();
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    WakelockPlus.enable();
+    _pip.setMethodCallHandler((call) async {
+      if (call.method == 'pipChanged' && mounted) {
+        final entered = call.arguments == true;
+        setState(() {
+          inPip = entered;
+          if (entered) showControls = false;
+        });
+        if (entered) WakelockPlus.enable();
+      }
+    });
     _init();
   }
 
@@ -52,7 +67,37 @@ class _VodPlayerScreenState extends State<VodPlayerScreen> {
   }
 
   void _onTick() {
+    final playing = controller?.value.isPlaying == true;
+    if (playing != _autoPipOn) _syncAutoPip(playing);
     if (mounted && !dragging) setState(() {});
+  }
+
+  Map<String, int> _pipSize() {
+    final size = controller?.value.size;
+    return {
+      'width': (size != null && size.width > 0) ? size.width.round() : 16,
+      'height': (size != null && size.height > 0) ? size.height.round() : 9,
+    };
+  }
+
+  Future<void> _syncAutoPip(bool enabled) async {
+    _autoPipOn = enabled;
+    try {
+      await _pip.invokeMethod('setAutoPip', {'enabled': enabled, ..._pipSize()});
+    } catch (_) {}
+  }
+
+  Future<void> _enterPip() async {
+    WakelockPlus.enable();
+    try {
+      final ok = await _pip.invokeMethod('enterPip', _pipSize());
+      if (ok == true && mounted) {
+        setState(() {
+          inPip = true;
+          showControls = false;
+        });
+      }
+    } catch (_) {}
   }
 
   void _scheduleHide() {
@@ -125,6 +170,8 @@ class _VodPlayerScreenState extends State<VodPlayerScreen> {
   void dispose() {
     hideTimer?.cancel();
     hintTimer?.cancel();
+    _pip.setMethodCallHandler(null);
+    _pip.invokeMethod('setAutoPip', {'enabled': false}).catchError((_) {});
     controller?.removeListener(_onTick);
     controller?.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -214,6 +261,12 @@ class _VodPlayerScreenState extends State<VodPlayerScreen> {
                 Text(_fmt(total), style: const TextStyle(color: Colors.white, fontSize: 12)),
                 IconButton(
                   visualDensity: VisualDensity.compact,
+                  icon: const Icon(Icons.picture_in_picture_alt, color: Colors.white),
+                  tooltip: 'Pop out',
+                  onPressed: _enterPip,
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
                   icon: Icon(landscape ? Icons.fullscreen_exit : Icons.fullscreen, color: Colors.white),
                   onPressed: _toggleFullscreen,
                 ),
@@ -253,7 +306,19 @@ class _VodPlayerScreenState extends State<VodPlayerScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: landscape ? null : AppBar(title: Text(widget.data['title']?.toString() ?? 'Video')),
+      appBar: (landscape || inPip)
+          ? null
+          : AppBar(
+              title: Text(widget.data['title']?.toString() ?? 'Video'),
+              actions: [
+                if (initialized)
+                  IconButton(
+                    icon: const Icon(Icons.picture_in_picture_alt),
+                    tooltip: 'Pop out',
+                    onPressed: _enterPip,
+                  ),
+              ],
+            ),
       body: failed
           ? const Center(child: Text('This video could not be played', style: TextStyle(color: Colors.white70)))
           : !initialized
@@ -279,7 +344,7 @@ class _VodPlayerScreenState extends State<VodPlayerScreen> {
                           ),
                           if (controller!.value.isBuffering)
                             const Center(child: CircularProgressIndicator()),
-                          if (skipHint != null)
+                          if (skipHint != null && !inPip)
                             Center(
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -287,7 +352,7 @@ class _VodPlayerScreenState extends State<VodPlayerScreen> {
                                 child: Text(skipHint!, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                               ),
                             ),
-                          if (showControls)
+                          if (showControls && !inPip)
                             Positioned(left: 0, right: 0, bottom: 0, child: _controls()),
                         ],
                       ),
