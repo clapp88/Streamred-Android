@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/api_service.dart';
-import 'screens/login_screen.dart';
-import 'screens/main_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const StreamRedApp());
@@ -18,20 +17,20 @@ class StreamRedApp extends StatelessWidget {
       child: Consumer<ApiService>(
         builder: (context, api, _) {
           return MaterialApp(
-            title: 'StreamRed',
+            title: '88 Streams',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
               brightness: Brightness.dark,
-              colorScheme: const ColorScheme.dark(primary: Colors.purple, surface: Color(0xFF18181B)),
+              colorScheme: const ColorScheme.dark(primary: Colors.red, surface: Color(0xFF18181B)),
               scaffoldBackgroundColor: const Color(0xFF0E0E10),
               appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF18181B), elevation: 0),
               bottomNavigationBarTheme: const BottomNavigationBarThemeData(
                 backgroundColor: Color(0xFF18181B),
-                selectedItemColor: Colors.purple,
+                selectedItemColor: Colors.red,
                 unselectedItemColor: Colors.grey,
               ),
             ),
-            home: api.isLoggedIn ? const MainScreen() : const LoginScreen(),
+            home: const SplashScreen(),
           );
         },
       ),

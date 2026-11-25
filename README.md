@@ -1,10 +1,9 @@
-# StreamRed Android v1.13
+# 88 Streams Android v1.14
 
 ## New
-- **Shorts section on the homepage**
-  - Order: Live streams → Scheduled streams → Shorts
-  - Shorts show with a vertical thumbnail and a “SHORT” badge
-  - Tapping a short opens it in the player
+- App name changed to **88 Streams**
+- Splash screen with logo animation (fade in)
+- 18+ age gate (shown once, then remembered)
 
 ## Build
 ```bash
