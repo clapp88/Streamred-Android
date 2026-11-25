@@ -32,7 +32,8 @@ class MiniPlayer {
       aspectRatio: 16 / 9,
       showControls: true,
       allowFullScreen: true,
-      fullScreenByDefault: false,
+      allowMuting: true,
+      showControlsOnInitialize: true,
     );
     isVisible = true;
   }
@@ -111,11 +112,12 @@ class _StreamScreenState extends State<StreamScreen> with WidgetsBindingObserver
     final api = context.watch<ApiService>();
     final channel = widget.data['channelName'] ?? widget.data['username'] ?? '';
     final following = api.isFollowing(channel);
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
     return ChangeNotifierProvider.value(
       value: chatService,
       child: Scaffold(
-        appBar: inPip
+        appBar: (inPip || isLandscape)
             ? null
             : AppBar(
                 title: Text(widget.data['title'] ?? 'Watch', maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -131,89 +133,93 @@ class _StreamScreenState extends State<StreamScreen> with WidgetsBindingObserver
               ),
         body: inPip
             ? (MiniPlayer.chewie != null ? Chewie(controller: MiniPlayer.chewie!) : const Center(child: Text('No video')))
-            : Column(
-                children: [
-                  if (MiniPlayer.chewie != null)
-                    AspectRatio(aspectRatio: 16 / 9, child: Chewie(controller: MiniPlayer.chewie!))
-                  else
-                    Container(height: 220, color: Colors.black, alignment: Alignment.center, child: const Text('No playback URL', style: TextStyle(color: Colors.white70))),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Row(
-                      children: [
-                        Expanded(child: Text(channel, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
-                        OutlinedButton(onPressed: () => api.toggleFollow(channel), child: Text(following ? 'Following' : 'Follow')),
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.favorite, size: 16), label: const Text('Donate')),
-                      ],
-                    ),
-                  ),
-                  Consumer<ChatService>(
-                    builder: (context, chat, _) {
-                      if (chat.ticker.isNotEmpty) {
-                        return Container(
-                          width: double.infinity,
-                          color: Colors.purple.withOpacity(0.2),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          child: Text(chat.ticker, style: const TextStyle(fontSize: 13)),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  ),
-                  Expanded(
-                    child: Consumer<ChatService>(
-                      builder: (context, chat, _) {
-                        if (!chat.connected && chat.error != null) {
-                          return Center(child: Text('Chat error: ${chat.error}', style: const TextStyle(color: Colors.red)));
-                        }
-                        return ListView.builder(
-                          reverse: true,
-                          itemCount: chat.messages.length,
-                          itemBuilder: (_, i) {
-                            final m = chat.messages[chat.messages.length - 1 - i];
-                            final isBroadcaster = m['isBroadcaster'] == true;
-                            final isModerator = m['isModerator'] == true;
-                            final isVip = m['isVip'] == true || m['vip'] == true;
-                            Color nameColor = Colors.white;
-                            if (isBroadcaster) nameColor = Colors.red;
-                            else if (isModerator) nameColor = Colors.green;
-                            else if (isVip) nameColor = Colors.purple;
+            : isLandscape
+                ? (MiniPlayer.chewie != null
+                    ? Center(child: AspectRatio(aspectRatio: 16 / 9, child: Chewie(controller: MiniPlayer.chewie!)))
+                    : const Center(child: Text('No video')))
+                : Column(
+                    children: [
+                      if (MiniPlayer.chewie != null)
+                        AspectRatio(aspectRatio: 16 / 9, child: Chewie(controller: MiniPlayer.chewie!))
+                      else
+                        Container(height: 220, color: Colors.black, alignment: Alignment.center, child: const Text('No playback URL', style: TextStyle(color: Colors.white70))),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        child: Row(
+                          children: [
+                            Expanded(child: Text(channel, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
+                            OutlinedButton(onPressed: () => api.toggleFollow(channel), child: Text(following ? 'Following' : 'Follow')),
+                            const SizedBox(width: 8),
+                            ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.favorite, size: 16), label: const Text('Donate')),
+                          ],
+                        ),
+                      ),
+                      Consumer<ChatService>(
+                        builder: (context, chat, _) {
+                          if (chat.ticker.isNotEmpty) {
+                            return Container(
+                              width: double.infinity,
+                              color: Colors.purple.withOpacity(0.2),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              child: Text(chat.ticker, style: const TextStyle(fontSize: 13)),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                      Expanded(
+                        child: Consumer<ChatService>(
+                          builder: (context, chat, _) {
+                            if (!chat.connected && chat.error != null) {
+                              return Center(child: Text('Chat error: ${chat.error}', style: const TextStyle(color: Colors.red)));
+                            }
+                            return ListView.builder(
+                              reverse: true,
+                              itemCount: chat.messages.length,
+                              itemBuilder: (_, i) {
+                                final m = chat.messages[chat.messages.length - 1 - i];
+                                final isBroadcaster = m['isBroadcaster'] == true;
+                                final isModerator = m['isModerator'] == true;
+                                final isVip = m['isVip'] == true || m['vip'] == true;
+                                Color nameColor = Colors.white;
+                                if (isBroadcaster) nameColor = Colors.red;
+                                else if (isModerator) nameColor = Colors.green;
+                                else if (isVip) nameColor = Colors.purple;
 
-                            return ListTile(
-                              dense: true,
-                              title: Row(
-                                children: [
-                                  if (isBroadcaster) const Text('🔴 ', style: TextStyle(fontSize: 12)),
-                                  if (isModerator) const Text('🛡️ ', style: TextStyle(fontSize: 12)),
-                                  if (isVip) const Text('⭐ ', style: TextStyle(fontSize: 12)),
-                                  Flexible(
-                                    child: Text(
-                                      m['username'] ?? '',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: nameColor),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                return ListTile(
+                                  dense: true,
+                                  title: Row(
+                                    children: [
+                                      if (isBroadcaster) const Text('🔴 ', style: TextStyle(fontSize: 12)),
+                                      if (isModerator) const Text('🛡️ ', style: TextStyle(fontSize: 12)),
+                                      if (isVip) const Text('⭐ ', style: TextStyle(fontSize: 12)),
+                                      Flexible(
+                                        child: Text(
+                                          m['username'] ?? '',
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: nameColor),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              subtitle: Text(m['content'] ?? ''),
+                                  subtitle: Text(m['content'] ?? ''),
+                                );
+                              },
                             );
                           },
-                        );
-                      },
-                    ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(8, 8, 8, MediaQuery.of(context).padding.bottom + 48),
+                        child: Row(
+                          children: [
+                            Expanded(child: TextField(controller: chatCtrl, decoration: const InputDecoration(hintText: 'Send a message...', border: OutlineInputBorder(), isDense: true))),
+                            IconButton(icon: const Icon(Icons.send), onPressed: sendMessage),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(8, 8, 8, MediaQuery.of(context).padding.bottom + 48),
-                    child: Row(
-                      children: [
-                        Expanded(child: TextField(controller: chatCtrl, decoration: const InputDecoration(hintText: 'Send a message...', border: OutlineInputBorder(), isDense: true))),
-                        IconButton(icon: const Icon(Icons.send), onPressed: sendMessage),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
       ),
     );
   }
