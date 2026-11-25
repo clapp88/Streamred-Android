@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
-import 'stream_screen.dart';
+import 'categories_screen.dart';
 import 'shorts_viewer.dart';
 import 'channel_screen.dart';
+import 'stream_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -63,6 +64,13 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Image.asset('assets/logo.jpg', height: 36),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.category),
+            tooltip: 'Categories',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoriesScreen())),
+          ),
+        ],
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())

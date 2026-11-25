@@ -1,9 +1,9 @@
-# 88 Streams Android v1.23
+# 88 Streams Android v1.26
 
-## Fix
-- Stronger duplicate prevention for chat
-- Each message should now appear only once
-- Uses message ID when available, otherwise a short time-window key
+## New
+- Categories button in the top bar
+- Browse videos/streams by category
+- Follow list syncs from the website on login (when the endpoint is available)
 
 ## Build
 ```bash

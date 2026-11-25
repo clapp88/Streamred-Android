@@ -17,7 +17,10 @@ class ApiService extends ChangeNotifier {
     _token = prefs.getString('auth_token');
     final saved = prefs.getStringList('followed') ?? [];
     followed.addAll(saved);
-    if (isLoggedIn) await fetchMe();
+    if (isLoggedIn) {
+      await fetchMe();
+      await syncFollows();
+    }
     notifyListeners();
   }
 
@@ -103,6 +106,47 @@ class ApiService extends ChangeNotifier {
       }
     } catch (_) {}
     return [];
+  }
+
+  Future<List> getCategories() async {
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/api/categories'), headers: headers);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return data is List ? data : (data['data'] ?? []);
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<List> getCategoryContent(String idOrName) async {
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/api/categories/${Uri.encodeComponent(idOrName)}/browse'), headers: headers);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return data is List ? data : (data['data'] ?? data['streams'] ?? data['videos'] ?? []);
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<void> syncFollows() async {
+    if (!isLoggedIn) return;
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/api/users/me/following'), headers: headers);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final list = data is List ? data : (data['data'] ?? []);
+        followed.clear();
+        for (final item in list) {
+          final name = item['channelName'] ?? item['username'] ?? item['name'];
+          if (name != null) followed.add(name.toString());
+        }
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setStringList('followed', followed.toList());
+        notifyListeners();
+      }
+    } catch (_) {}
   }
 
   Future<List> getShorts({int limit = 20}) async {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'services/api_service.dart';
 import 'screens/splash_screen.dart';
 
@@ -16,6 +17,7 @@ class StreamRedApp extends StatelessWidget {
       create: (_) => ApiService()..loadToken(),
       child: Consumer<ApiService>(
         builder: (context, api, _) {
+          WakelockPlus.enable();
           return MaterialApp(
             title: '88 Streams',
             debugShowCheckedModeBanner: false,
