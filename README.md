@@ -1,8 +1,10 @@
-# 88 Streams Android v1.35
+# 88 Streams Android v1.36
 
-## New
-- Category listings hide videos whose links do not respond
-- Working videos are unaffected
+## Fix
+- Dedicated player for uploaded category videos
+- Uses the video’s real aspect ratio
+- Shows seek bar, pause/play, and mute
+- Supports landscape rotation
 
 ## Build
 ```bash

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
-import 'stream_screen.dart';
+import 'vod_player_screen.dart';
 import 'shorts_viewer.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -111,8 +111,8 @@ class _CategoryBrowseScreenState extends State<CategoryBrowseScreen> {
                         onTap: () {
                           if (isShort) {
                             Navigator.push(context, MaterialPageRoute(builder: (_) => ShortsViewer(shorts: [item], initialIndex: 0)));
-                          } else if (id.isNotEmpty) {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => StreamScreen(nanoId: id, data: Map<String, dynamic>.from(item))));
+                          } else {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => VodPlayerScreen(data: Map<String, dynamic>.from(item))));
                           }
                         },
                         child: Column(
