@@ -1,9 +1,10 @@
-# 88 Streams Android v1.14
+# 88 Streams Android v1.15
 
-## New
-- App name changed to **88 Streams**
-- Splash screen with logo animation (fade in)
-- 18+ age gate (shown once, then remembered)
+## Changes
+- Splash screen now shows **logo only** (no extra text)
+- Shorts now play using their `videoUrl`
+- New vertical Shorts viewer (swipe up/down like Reels / YouTube Shorts)
+- Tapping a short opens the full-screen reel player
 
 ## Build
 ```bash

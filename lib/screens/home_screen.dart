@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import 'stream_screen.dart';
+import 'shorts_viewer.dart';
 import 'channel_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -38,7 +39,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void openItem(dynamic item) {
     final id = item['nanoId']?.toString() ?? '';
-    if (id.isNotEmpty) {
+    final isShort = item['isShort'] == true || item['videoType'] == 0;
+    if (isShort) {
+      final index = shorts.indexWhere((s) => s['nanoId'] == id);
+      Navigator.push(context, MaterialPageRoute(builder: (_) => ShortsViewer(shorts: shorts, initialIndex: index >= 0 ? index : 0)));
+    } else if (id.isNotEmpty) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => StreamScreen(nanoId: id, data: Map<String, dynamic>.from(item))));
     }
   }
