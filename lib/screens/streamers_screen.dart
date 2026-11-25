@@ -22,8 +22,13 @@ class _StreamersScreenState extends State<StreamersScreen> {
   }
 
   Future<void> load() async {
-    final list = await context.read<ApiService>().getChannels();
-    if (mounted) setState(() { channels = list; loading = false; });
+    final list = await context.read<ApiService>().getChannels(limit: 200);
+    final filtered = list.where((c) {
+      final isLive = c['isLive'] == true;
+      final followers = (c['followerCount'] as num?)?.toInt() ?? 0;
+      return isLive || followers > 0;
+    }).toList();
+    if (mounted) setState(() { channels = filtered; loading = false; });
   }
 
   @override
@@ -39,6 +44,7 @@ class _StreamersScreenState extends State<StreamersScreen> {
                 final name = c['channelName'] ?? c['username'] ?? c['name'] ?? 'Streamer';
                 final avatar = c['avatar'] ?? c['channelAvatar'];
                 final avatarUrl = avatar != null ? (avatar.toString().startsWith('http') ? avatar : 'https://88streams.st$avatar') : null;
+                final isLive = c['isLive'] == true;
 
                 return ListTile(
                   leading: CircleAvatar(
@@ -46,6 +52,7 @@ class _StreamersScreenState extends State<StreamersScreen> {
                     child: avatarUrl == null ? const Icon(Icons.person) : null,
                   ),
                   title: Text(name),
+                  trailing: isLive ? const Chip(label: Text('LIVE', style: TextStyle(fontSize: 10)), backgroundColor: Colors.red, visualDensity: VisualDensity.compact) : null,
                   onTap: () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => ChannelScreen(name: name)));
                   },
