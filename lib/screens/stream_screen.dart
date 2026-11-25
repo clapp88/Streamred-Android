@@ -29,6 +29,7 @@ class MiniPlayer {
       videoPlayerController: controller!,
       autoPlay: true,
       aspectRatio: 16 / 9,
+      showControls: false,
     );
     isVisible = true;
   }
@@ -54,6 +55,8 @@ class StreamScreen extends StatefulWidget {
 }
 
 class _StreamScreenState extends State<StreamScreen> with WidgetsBindingObserver {
+  bool inPip = false;
+
   @override
   void initState() {
     super.initState();
@@ -68,6 +71,9 @@ class _StreamScreenState extends State<StreamScreen> with WidgetsBindingObserver
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused && MiniPlayer.isVisible) {
       MiniPlayer.enterPip();
+      setState(() => inPip = true);
+    } else if (state == AppLifecycleState.resumed) {
+      setState(() => inPip = false);
     }
   }
 
@@ -84,44 +90,53 @@ class _StreamScreenState extends State<StreamScreen> with WidgetsBindingObserver
     final following = api.isFollowing(channel);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.data['title'] ?? 'Watch'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.picture_in_picture_alt),
-            onPressed: MiniPlayer.enterPip,
-            tooltip: 'Picture in Picture',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          if (MiniPlayer.chewie != null)
-            AspectRatio(aspectRatio: 16 / 9, child: Chewie(controller: MiniPlayer.chewie!))
-          else
-            Container(
-              height: 220,
-              color: Colors.black,
-              alignment: Alignment.center,
-              child: const Text('No playback URL', style: TextStyle(color: Colors.white70)),
-            ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              children: [
-                Expanded(child: Text(channel, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
-                OutlinedButton(
-                  onPressed: () => api.toggleFollow(channel),
-                  child: Text(following ? 'Following' : 'Follow'),
+      appBar: inPip
+          ? null
+          : AppBar(
+              title: Text(widget.data['title'] ?? 'Watch', maxLines: 1, overflow: TextOverflow.ellipsis),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.picture_in_picture_alt),
+                  onPressed: () {
+                    MiniPlayer.enterPip();
+                    setState(() => inPip = true);
+                  },
+                  tooltip: 'Picture in Picture',
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.favorite, size: 16), label: const Text('Donate')),
               ],
             ),
-          ),
-          const Expanded(child: Center(child: Text('Chat coming later'))),
-        ],
-      ),
+      body: inPip
+          ? (MiniPlayer.chewie != null
+              ? Chewie(controller: MiniPlayer.chewie!)
+              : const Center(child: Text('No video')))
+          : Column(
+              children: [
+                if (MiniPlayer.chewie != null)
+                  AspectRatio(aspectRatio: 16 / 9, child: Chewie(controller: MiniPlayer.chewie!))
+                else
+                  Container(
+                    height: 220,
+                    color: Colors.black,
+                    alignment: Alignment.center,
+                    child: const Text('No playback URL', style: TextStyle(color: Colors.white70)),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text(channel, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
+                      OutlinedButton(
+                        onPressed: () => api.toggleFollow(channel),
+                        child: Text(following ? 'Following' : 'Follow'),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.favorite, size: 16), label: const Text('Donate')),
+                    ],
+                  ),
+                ),
+                const Expanded(child: Center(child: Text('Chat coming later'))),
+              ],
+            ),
     );
   }
 }

@@ -1,14 +1,9 @@
-# StreamRed Android v1.11
+# StreamRed Android v1.12
 
-## New
-- **Android Picture-in-Picture (PiP)**
-  - Tap the PiP icon in the stream screen to float the video
-  - Or leave the app while a stream is playing — it should try to enter PiP
-  - Video can continue over other apps
-
-## Requirements
-- Android 8.0 or higher
-- Rebuild the APK after updating
+## Fix
+- **Picture-in-Picture now shows only the video**
+  - The title bar is hidden when the app enters PiP mode
+  - Video fills the floating window instead of being covered by the header
 
 ## Build
 ```bash

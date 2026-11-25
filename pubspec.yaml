@@ -1,7 +1,7 @@
 name: streamred_android
 description: StreamRed mobile app
 publish_to: 'none'
-version: 1.11.0+1
+version: 1.12.0+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
