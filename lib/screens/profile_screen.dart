@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/api_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +37,19 @@ class ProfileScreen extends StatelessWidget {
           else
             ...followed.map((c) => ListTile(title: Text(c), trailing: const Icon(Icons.check))),
           const SizedBox(height: 32),
+          const Text('Legal', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          ListTile(
+            leading: const Icon(Icons.description),
+            title: const Text('Terms of Service'),
+            onTap: () => _openUrl('https://88streams.st/terms'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip),
+            title: const Text('Privacy Policy'),
+            onTap: () => _openUrl('https://88streams.st/privacy'),
+          ),
+          const SizedBox(height: 16),
           OutlinedButton(onPressed: api.logout, child: const Text('Log Out')),
         ],
       ),

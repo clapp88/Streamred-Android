@@ -14,48 +14,45 @@ class ChatService extends ChangeNotifier {
     messages.clear();
     error = null;
     connected = false;
+    notifyListeners();
 
     final hubUrl = 'https://88streams.st/ws/chat?access_token=${Uri.encodeComponent(accessToken)}';
 
     connection = HubConnectionBuilder()
         .withUrl(hubUrl)
-        .withAutomaticReconnect()
+        .withAutomaticReconnect(retryDelays: [0, 2000, 5000, 10000])
         .build();
 
     connection!.on('ReceiveMessage', (args) {
-      if (args != null && args.isNotEmpty) {
-        final msg = args[0] as Map<String, dynamic>? ?? {};
-        messages.add({
-          'username': msg['displayName'] ?? msg['username'] ?? 'User',
-          'content': msg['content'] ?? '',
-          'isBroadcaster': msg['isBroadcaster'] ?? false,
-          'isModerator': msg['isModerator'] ?? false,
-        });
-        if (messages.length > 100) messages.removeAt(0);
-        notifyListeners();
-      }
+      _handleMessage(args);
+    });
+
+    connection!.on('receiveMessage', (args) {
+      _handleMessage(args);
     });
 
     connection!.on('ViewerCountUpdated', (args) {
       if (args != null && args.isNotEmpty) {
-        viewerCount = args[0] as int? ?? 0;
+        viewerCount = (args[0] as num?)?.toInt() ?? 0;
         notifyListeners();
       }
     });
 
     connection!.on('TickerUpdated', (args) {
       if (args != null && args.isNotEmpty) {
-        final data = args[0] as Map<String, dynamic>? ?? {};
-        ticker = data['message'] ?? '';
+        final data = args[0];
+        if (data is Map) ticker = data['message']?.toString() ?? '';
         notifyListeners();
       }
     });
 
     connection!.on('RoomInfo', (args) {
       if (args != null && args.isNotEmpty) {
-        final info = args[0] as Map<String, dynamic>? ?? {};
-        ticker = info['tickerMessage'] ?? '';
-        viewerCount = info['viewerCount'] ?? 0;
+        final info = args[0];
+        if (info is Map) {
+          ticker = info['tickerMessage']?.toString() ?? '';
+          viewerCount = (info['viewerCount'] as num?)?.toInt() ?? 0;
+        }
         notifyListeners();
       }
     });
@@ -64,12 +61,35 @@ class ChatService extends ChangeNotifier {
       await connection!.start();
       connected = true;
       await connection!.invoke('JoinChat', args: [streamNanoId]);
+      error = null;
       notifyListeners();
     } catch (e) {
       error = e.toString();
       connected = false;
       notifyListeners();
     }
+  }
+
+  void _handleMessage(List<Object?>? args) {
+    if (args == null || args.isEmpty) return;
+    final raw = args[0];
+    Map<String, dynamic> msg = {};
+    if (raw is Map) {
+      msg = Map<String, dynamic>.from(raw);
+    } else if (raw is List && raw.isNotEmpty && raw[0] is Map) {
+      msg = Map<String, dynamic>.from(raw[0] as Map);
+    }
+    if (msg.isEmpty) return;
+
+    messages.add({
+      'username': msg['displayName'] ?? msg['username'] ?? msg['user'] ?? 'User',
+      'content': msg['content'] ?? msg['message'] ?? '',
+      'isBroadcaster': msg['isBroadcaster'] == true,
+      'isModerator': msg['isModerator'] == true,
+      'isVip': msg['isVip'] == true || msg['vip'] == true || msg['isVIP'] == true,
+    });
+    if (messages.length > 150) messages.removeAt(0);
+    notifyListeners();
   }
 
   Future<void> send(String streamNanoId, String message) async {

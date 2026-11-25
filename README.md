@@ -1,11 +1,8 @@
-# 88 Streams Android v1.18
+# 88 Streams Android v1.21
 
 ## New
-- **Real-time SignalR chat**
-  - Connects to `wss://88streams.st/ws/chat`
-  - Live messages appear automatically
-  - You can send messages while logged in
-  - Shows ticker and viewer count when available
+- Terms of Service and Privacy Policy links in the Profile screen
+- Tapping them opens the pages in the phone’s browser
 
 ## Build
 ```bash

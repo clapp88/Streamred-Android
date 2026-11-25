@@ -170,9 +170,30 @@ class _StreamScreenState extends State<StreamScreen> with WidgetsBindingObserver
                           itemCount: chat.messages.length,
                           itemBuilder: (_, i) {
                             final m = chat.messages[chat.messages.length - 1 - i];
+                            final isBroadcaster = m['isBroadcaster'] == true;
+                            final isModerator = m['isModerator'] == true;
+                            final isVip = m['isVip'] == true || m['vip'] == true;
+                            Color nameColor = Colors.white;
+                            if (isBroadcaster) nameColor = Colors.red;
+                            else if (isModerator) nameColor = Colors.green;
+                            else if (isVip) nameColor = Colors.purple;
+
                             return ListTile(
                               dense: true,
-                              title: Text(m['username'] ?? '', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: m['isBroadcaster'] == true ? Colors.red : null)),
+                              title: Row(
+                                children: [
+                                  if (isBroadcaster) const Text('🔴 ', style: TextStyle(fontSize: 12)),
+                                  if (isModerator) const Text('🛡️ ', style: TextStyle(fontSize: 12)),
+                                  if (isVip) const Text('⭐ ', style: TextStyle(fontSize: 12)),
+                                  Flexible(
+                                    child: Text(
+                                      m['username'] ?? '',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: nameColor),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                               subtitle: Text(m['content'] ?? ''),
                             );
                           },
