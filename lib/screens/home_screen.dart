@@ -60,7 +60,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final scheduled = streams.where((s) => s['isLive'] != true).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('StreamRed')),
+      appBar: AppBar(
+        title: Image.asset('assets/logo.jpg', height: 36),
+        centerTitle: false,
+      ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(

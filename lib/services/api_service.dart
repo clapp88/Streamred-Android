@@ -10,6 +10,7 @@ class ApiService extends ChangeNotifier {
   final Set<String> followed = {};
 
   bool get isLoggedIn => _token != null && _token!.isNotEmpty;
+  String? get token => _token;
 
   Future<void> loadToken() async {
     final prefs = await SharedPreferences.getInstance();

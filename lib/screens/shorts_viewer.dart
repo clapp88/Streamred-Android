@@ -13,43 +13,61 @@ class ShortsViewer extends StatefulWidget {
 
 class _ShortsViewerState extends State<ShortsViewer> {
   late PageController pageController;
+  int currentIndex = 0;
   final Map<int, VideoPlayerController> controllers = {};
   final Map<int, ChewieController> chewies = {};
 
   @override
   void initState() {
     super.initState();
-    pageController = PageController(initialPage: widget.initialIndex);
-    _initController(widget.initialIndex);
+    currentIndex = widget.initialIndex;
+    pageController = PageController(initialPage: currentIndex);
+    _prepare(currentIndex);
   }
 
-  void _initController(int index) {
+  Future<void> _prepare(int index) async {
     if (index < 0 || index >= widget.shorts.length) return;
     if (controllers.containsKey(index)) return;
+
     final url = widget.shorts[index]['videoUrl'];
     if (url == null) return;
     final fullUrl = url.toString().startsWith('http') ? url.toString() : 'https://88streams.st$url';
+
     final controller = VideoPlayerController.networkUrl(Uri.parse(fullUrl));
     controllers[index] = controller;
-    controller.initialize().then((_) {
-      if (mounted) {
-        setState(() {
-          chewies[index] = ChewieController(
-            videoPlayerController: controller,
-            autoPlay: true,
-            looping: true,
-            aspectRatio: 9 / 16,
-            showControls: false,
-          );
-        });
+    await controller.initialize();
+    if (!mounted) return;
+
+    final chewie = ChewieController(
+      videoPlayerController: controller,
+      autoPlay: false,
+      looping: true,
+      aspectRatio: 9 / 16,
+      showControls: false,
+    );
+    chewies[index] = chewie;
+    setState(() {});
+    if (index == currentIndex) {
+      controller.play();
+    }
+  }
+
+  void _pauseAllExcept(int keep) {
+    for (final entry in controllers.entries) {
+      if (entry.key != keep) {
+        entry.value.pause();
       }
-    });
+    }
   }
 
   @override
   void dispose() {
-    for (final c in controllers.values) c.dispose();
-    for (final ch in chewies.values) ch.dispose();
+    for (final c in controllers.values) {
+      c.dispose();
+    }
+    for (final ch in chewies.values) {
+      ch.dispose();
+    }
     pageController.dispose();
     super.dispose();
   }
@@ -63,32 +81,40 @@ class _ShortsViewerState extends State<ShortsViewer> {
         scrollDirection: Axis.vertical,
         itemCount: widget.shorts.length,
         onPageChanged: (i) {
-          _initController(i);
-          _initController(i + 1);
+          setState(() => currentIndex = i);
+          _pauseAllExcept(i);
+          _prepare(i);
+          _prepare(i + 1);
+          controllers[i]?.play();
         },
         itemBuilder: (context, index) {
           final short = widget.shorts[index];
           final chewie = chewies[index];
+          final isCurrent = index == currentIndex;
+
           return Stack(
             fit: StackFit.expand,
             children: [
-              if (chewie != null)
+              if (chewie != null && isCurrent)
                 Chewie(controller: chewie)
+              else if (controllers[index] != null && controllers[index]!.value.isInitialized)
+                VideoPlayer(controllers[index]!)
               else
                 const Center(child: CircularProgressIndicator()),
-              Positioned(
-                left: 16,
-                right: 80,
-                bottom: 40,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(short['channelName'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    const SizedBox(height: 4),
-                    Text(short['title'] ?? '', maxLines: 2, style: const TextStyle(fontSize: 14)),
-                  ],
+              if (isCurrent)
+                Positioned(
+                  left: 16,
+                  right: 80,
+                  bottom: 40,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(short['channelName'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 4),
+                      Text(short['title'] ?? '', maxLines: 2, style: const TextStyle(fontSize: 14)),
+                    ],
+                  ),
                 ),
-              ),
             ],
           );
         },
