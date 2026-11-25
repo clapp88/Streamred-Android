@@ -7,6 +7,7 @@
         android:icon="@mipmap/ic_launcher"
         android:supportsPictureInPicture="true">
         <activity
+            android:screenOrientation="fullSensor"
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"

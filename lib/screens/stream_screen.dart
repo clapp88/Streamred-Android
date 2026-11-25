@@ -30,7 +30,9 @@ class MiniPlayer {
       videoPlayerController: controller!,
       autoPlay: true,
       aspectRatio: 16 / 9,
-      showControls: false,
+      showControls: true,
+      allowFullScreen: true,
+      fullScreenByDefault: false,
     );
     isVisible = true;
   }
