@@ -202,7 +202,7 @@ class _StreamScreenState extends State<StreamScreen> with WidgetsBindingObserver
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
+                    padding: EdgeInsets.fromLTRB(8, 8, 8, MediaQuery.of(context).padding.bottom + 48),
                     child: Row(
                       children: [
                         Expanded(child: TextField(controller: chatCtrl, decoration: const InputDecoration(hintText: 'Send a message...', border: OutlineInputBorder(), isDense: true))),

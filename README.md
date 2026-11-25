@@ -1,9 +1,8 @@
-# 88 Streams Android v1.26
+# 88 Streams Android v1.27
 
-## New
-- Categories button in the top bar
-- Browse videos/streams by category
-- Follow list syncs from the website on login (when the endpoint is available)
+## Fixes
+- Chat input bar raised further (accounts for Android navigation bar)
+- Categories now try multiple endpoints to load videos/streams
 
 ## Build
 ```bash

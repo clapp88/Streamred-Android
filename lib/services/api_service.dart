@@ -121,10 +121,19 @@ class ApiService extends ChangeNotifier {
 
   Future<List> getCategoryContent(String idOrName) async {
     try {
-      final res = await http.get(Uri.parse('$baseUrl/api/categories/${Uri.encodeComponent(idOrName)}/browse'), headers: headers);
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        return data is List ? data : (data['data'] ?? data['streams'] ?? data['videos'] ?? []);
+      final encoded = Uri.encodeComponent(idOrName);
+      final urls = [
+        '$baseUrl/api/categories/$encoded/browse',
+        '$baseUrl/api/videos?category=$encoded&limit=40',
+        '$baseUrl/api/streams?category=$encoded&limit=40',
+      ];
+      for (final url in urls) {
+        final res = await http.get(Uri.parse(url), headers: headers);
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          final list = data is List ? data : (data['data'] ?? data['streams'] ?? data['videos'] ?? []);
+          if (list is List && list.isNotEmpty) return list;
+        }
       }
     } catch (_) {}
     return [];
