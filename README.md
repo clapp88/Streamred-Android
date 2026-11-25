@@ -1,8 +1,9 @@
-# 88 Streams Android v1.21
+# 88 Streams Android v1.22
 
-## New
-- Terms of Service and Privacy Policy links in the Profile screen
-- Tapping them opens the pages in the phone’s browser
+## Fix
+- Chat messages no longer appear twice in the app
+- Only the server echo is shown
+- Basic duplicate guard added
 
 ## Build
 ```bash

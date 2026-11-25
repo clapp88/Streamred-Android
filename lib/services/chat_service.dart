@@ -81,9 +81,20 @@ class ChatService extends ChangeNotifier {
     }
     if (msg.isEmpty) return;
 
+    final username = msg['displayName'] ?? msg['username'] ?? msg['user'] ?? 'User';
+    final content = msg['content'] ?? msg['message'] ?? '';
+
+    // Simple duplicate guard (same user + same text in the last few messages)
+    final isDuplicate = messages.length >= 2 &&
+        messages.last['username'] == username &&
+        messages.last['content'] == content &&
+        messages[messages.length - 2]['username'] == username &&
+        messages[messages.length - 2]['content'] == content;
+    if (isDuplicate) return;
+
     messages.add({
-      'username': msg['displayName'] ?? msg['username'] ?? msg['user'] ?? 'User',
-      'content': msg['content'] ?? msg['message'] ?? '',
+      'username': username,
+      'content': content,
       'isBroadcaster': msg['isBroadcaster'] == true,
       'isModerator': msg['isModerator'] == true,
       'isVip': msg['isVip'] == true || msg['vip'] == true || msg['isVIP'] == true,
@@ -96,6 +107,7 @@ class ChatService extends ChangeNotifier {
     if (connection == null || !connected) return;
     try {
       await connection!.invoke('SendMessage', args: [streamNanoId, message]);
+      // Do not add locally — the server will echo it back via ReceiveMessage
     } catch (e) {
       error = e.toString();
       notifyListeners();
