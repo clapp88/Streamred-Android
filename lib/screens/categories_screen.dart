@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import 'vod_player_screen.dart';
-import 'shorts_viewer.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -100,8 +99,6 @@ class _CategoryBrowseScreenState extends State<CategoryBrowseScreen> {
                   itemCount: items.length,
                   itemBuilder: (_, i) {
                     final item = items[i];
-                    final id = item['nanoId']?.toString() ?? '';
-                    final isShort = item['isShort'] == true || item['videoType'] == 0;
                     final thumb = item['thumbnail'] ?? item['thumb'] ?? item['image'];
                     final thumbUrl = thumb != null ? (thumb.toString().startsWith('http') ? thumb : 'https://88streams.st$thumb') : null;
 
@@ -109,11 +106,7 @@ class _CategoryBrowseScreenState extends State<CategoryBrowseScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       child: InkWell(
                         onTap: () {
-                          if (isShort) {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => ShortsViewer(shorts: [item], initialIndex: 0)));
-                          } else {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => VodPlayerScreen(data: Map<String, dynamic>.from(item))));
-                          }
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => VodPlayerScreen(data: Map<String, dynamic>.from(item))));
                         },
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,7 +115,7 @@ class _CategoryBrowseScreenState extends State<CategoryBrowseScreen> {
                               ClipRRect(
                                 borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                                 child: AspectRatio(
-                                  aspectRatio: isShort ? 9 / 16 : 16 / 9,
+                                  aspectRatio: 16 / 9,
                                   child: CachedNetworkImage(
                                     imageUrl: thumbUrl,
                                     fit: BoxFit.cover,

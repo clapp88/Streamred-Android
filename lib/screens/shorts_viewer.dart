@@ -42,7 +42,6 @@ class _ShortsViewerState extends State<ShortsViewer> {
       videoPlayerController: controller,
       autoPlay: false,
       looping: true,
-      aspectRatio: 9 / 16,
       showControls: false,
     );
     chewies[index] = chewie;
@@ -72,6 +71,18 @@ class _ShortsViewerState extends State<ShortsViewer> {
     super.dispose();
   }
 
+  Widget _fitted(VideoPlayerController c) {
+    final size = c.value.size;
+    final portrait = size.height > size.width;
+    return SizedBox.expand(
+      child: FittedBox(
+        fit: portrait ? BoxFit.cover : BoxFit.contain,
+        clipBehavior: Clip.hardEdge,
+        child: SizedBox(width: size.width, height: size.height, child: VideoPlayer(c)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,16 +100,13 @@ class _ShortsViewerState extends State<ShortsViewer> {
         },
         itemBuilder: (context, index) {
           final short = widget.shorts[index];
-          final chewie = chewies[index];
           final isCurrent = index == currentIndex;
 
           return Stack(
             fit: StackFit.expand,
             children: [
-              if (chewie != null && isCurrent)
-                Chewie(controller: chewie)
-              else if (controllers[index] != null && controllers[index]!.value.isInitialized)
-                VideoPlayer(controllers[index]!)
+              if (controllers[index] != null && controllers[index]!.value.isInitialized)
+                _fitted(controllers[index]!)
               else
                 const Center(child: CircularProgressIndicator()),
               if (isCurrent)
