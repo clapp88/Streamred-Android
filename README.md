@@ -1,10 +1,10 @@
-# 88 Streams Android v1.36
+# 88 Streams Android v1.37
 
-## Fix
-- Dedicated player for uploaded category videos
+## Change
+- Simpler dedicated player for category videos
+- Forced play/pause button and seek bar
 - Uses the video’s real aspect ratio
-- Shows seek bar, pause/play, and mute
-- Supports landscape rotation
+- Allows landscape rotation
 
 ## Build
 ```bash
