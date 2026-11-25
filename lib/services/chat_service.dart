@@ -4,6 +4,7 @@ import 'package:signalr_netcore/signalr_client.dart';
 class ChatService extends ChangeNotifier {
   HubConnection? connection;
   List<Map<String, dynamic>> messages = [];
+  final Set<String> _seen = {};
   bool connected = false;
   String? error;
   int viewerCount = 0;
@@ -81,16 +82,14 @@ class ChatService extends ChangeNotifier {
     }
     if (msg.isEmpty) return;
 
-    final username = msg['displayName'] ?? msg['username'] ?? msg['user'] ?? 'User';
-    final content = msg['content'] ?? msg['message'] ?? '';
+    final username = (msg['displayName'] ?? msg['username'] ?? msg['user'] ?? 'User').toString();
+    final content = (msg['content'] ?? msg['message'] ?? '').toString();
+    final id = (msg['id'] ?? msg['messageId'] ?? '').toString();
 
-    // Simple duplicate guard (same user + same text in the last few messages)
-    final isDuplicate = messages.length >= 2 &&
-        messages.last['username'] == username &&
-        messages.last['content'] == content &&
-        messages[messages.length - 2]['username'] == username &&
-        messages[messages.length - 2]['content'] == content;
-    if (isDuplicate) return;
+    final key = id.isNotEmpty ? id : '$username|$content|${DateTime.now().millisecondsSinceEpoch ~/ 2000}';
+    if (_seen.contains(key)) return;
+    _seen.add(key);
+    if (_seen.length > 300) _seen.remove(_seen.first);
 
     messages.add({
       'username': username,

@@ -1,9 +1,9 @@
-# 88 Streams Android v1.22
+# 88 Streams Android v1.23
 
 ## Fix
-- Chat messages no longer appear twice in the app
-- Only the server echo is shown
-- Basic duplicate guard added
+- Stronger duplicate prevention for chat
+- Each message should now appear only once
+- Uses message ID when available, otherwise a short time-window key
 
 ## Build
 ```bash
