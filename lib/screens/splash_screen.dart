@@ -14,15 +14,15 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _fade;
+  late Animation<double> _scale;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
-    _fade = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800));
+    _scale = Tween<double>(begin: 1.0, end: 2.8).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.forward();
-    Future.delayed(const Duration(seconds: 2), _next);
+    Future.delayed(const Duration(milliseconds: 2200), _next);
   }
 
   Future<void> _next() async {
@@ -48,14 +48,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
       body: Center(
-        child: FadeTransition(
-          opacity: _fade,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/logo.jpg', width: 240),
-            ],
-          ),
+        child: ScaleTransition(
+          scale: _scale,
+          child: Image.asset('assets/logo.jpg', width: 220),
         ),
       ),
     );
