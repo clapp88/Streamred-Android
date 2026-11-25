@@ -1,8 +1,8 @@
-# 88 Streams Android v1.27
+# 88 Streams Android v1.29
 
-## Fixes
-- Chat input bar raised further (accounts for Android navigation bar)
-- Categories now try multiple endpoints to load videos/streams
+## Changes
+- Categories button now says “Categories” instead of an icon
+- Category listings now show video thumbnails + title + channel name
 
 ## Build
 ```bash

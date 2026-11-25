@@ -65,10 +65,9 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Image.asset('assets/logo.jpg', height: 36),
         centerTitle: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.category),
-            tooltip: 'Categories',
+          TextButton(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoriesScreen())),
+            child: const Text('Categories', style: TextStyle(fontSize: 16)),
           ),
         ],
       ),
