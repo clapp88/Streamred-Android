@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/api_service.dart';
 import 'categories_screen.dart';
 import 'streamers_screen.dart';
@@ -56,6 +57,27 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> openFlyers() async {
+    final uri = Uri.parse('https://88flyers.st/');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> openMerch() async {
+    final uri = Uri.parse('https://88merch.st/');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final live = streams.where((s) => s['isLive'] == true).toList();
@@ -66,6 +88,24 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Image.asset('assets/logo.jpg', height: 36),
         centerTitle: false,
         actions: [
+          IconButton(
+            onPressed: openFlyers,
+            icon: Image.network(
+              'https://88flyers.st/wp-content/uploads/2026/10/88FLYERS-wide_dark.png',
+              height: 28,
+              errorBuilder: (_, __, ___) => const Icon(Icons.link),
+            ),
+            tooltip: '88 Flyers',
+          ),
+          IconButton(
+            onPressed: openMerch,
+            icon: Image.network(
+              'https://88merch.st/wp-content/uploads/2025/04/88-MERCH-512px-scaled.png',
+              height: 28,
+              errorBuilder: (_, __, ___) => const Icon(Icons.shopping_bag),
+            ),
+            tooltip: '88 Merch',
+          ),
           TextButton(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoriesScreen())),
             child: const Text('Categories', style: TextStyle(fontSize: 16)),
@@ -96,6 +136,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                   if (live.isEmpty && scheduled.isEmpty && shorts.isEmpty)
                     const Padding(padding: EdgeInsets.all(48), child: Center(child: Text('No content right now'))),
+                  const SizedBox(height: 32),
+                  const Divider(),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Text('Follow Us', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(icon: const Icon(Icons.close, size: 28), tooltip: 'X', onPressed: () => openUrl('https://x.com/88streams_')),
+                      IconButton(icon: const Icon(Icons.send, size: 28), tooltip: 'Telegram', onPressed: () => openUrl('https://t.me/Official88Streams')),
+                      IconButton(icon: const Icon(Icons.camera_alt, size: 28), tooltip: 'Instagram', onPressed: () => openUrl('https://instagram.com/88streams.official')),
+                      IconButton(icon: const Icon(Icons.music_note, size: 28), tooltip: 'TikTok', onPressed: () => openUrl('https://tiktok.com/@88streams')),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -157,7 +213,12 @@ class _Card extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(data['title'] ?? 'Untitled', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w500)),
+                        Text(
+                          (data['title'] ?? 'Untitled').toString().toUpperCase(),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
                         GestureDetector(
                           onTap: onChannel,
                           child: Text(data['channelName'] ?? data['username'] ?? '', style: const TextStyle(color: Colors.purple, fontSize: 13)),
