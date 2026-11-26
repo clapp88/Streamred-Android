@@ -193,9 +193,15 @@ class _StreamScreenState extends State<StreamScreen> with WidgetsBindingObserver
                                   dense: true,
                                   title: Row(
                                     children: [
-                                      if (isBroadcaster) const Text('🔴 ', style: TextStyle(fontSize: 12)),
-                                      if (isModerator) const Text('🛡️ ', style: TextStyle(fontSize: 12)),
-                                      if (isVip) const Text('⭐ ', style: TextStyle(fontSize: 12)),
+                                      if (isBroadcaster) const Padding(padding: EdgeInsets.only(right: 4), child: Icon(Icons.circle, color: Colors.red, size: 12)),
+                                      if (isModerator) Padding(
+                                        padding: const EdgeInsets.only(right: 4),
+                                        child: Image.asset('assets/mod_badge.png', width: 16, height: 16),
+                                      ),
+                                      if (isVip) Padding(
+                                        padding: const EdgeInsets.only(right: 4),
+                                        child: Image.asset('assets/vip_badge.png', width: 16, height: 16),
+                                      ),
                                       Flexible(
                                         child: Text(
                                           m['username'] ?? '',

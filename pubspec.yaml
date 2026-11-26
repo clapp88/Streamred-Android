@@ -1,7 +1,7 @@
 name: streamred_android
 description: 88 Streams mobile app
 publish_to: 'none'
-version: 1.37.6+25
+version: 1.37.7+26
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -28,3 +28,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/logo.jpg
+    - assets/mod_badge.png
+    - assets/vip_badge.png
