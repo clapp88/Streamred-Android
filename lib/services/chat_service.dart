@@ -10,11 +10,19 @@ class ChatService extends ChangeNotifier {
   int viewerCount = 0;
   String ticker = '';
 
+  // Keeps messages per stream while the app is running
+  static final Map<String, List<Map<String, dynamic>>> _cache = {};
+
   Future<void> connect(String accessToken, String streamNanoId) async {
     await disconnect();
-    messages.clear();
     error = null;
     connected = false;
+
+    // Restore saved messages for this stream
+    messages = List<Map<String, dynamic>>.from(_cache[streamNanoId] ?? []);
+    _seen
+      ..clear()
+      ..addAll(messages.map((m) => m['key']?.toString() ?? '').where((k) => k.isNotEmpty));
     notifyListeners();
 
     final hubUrl = 'https://88streams.st/ws/chat?access_token=${Uri.encodeComponent(accessToken)}';
@@ -24,13 +32,8 @@ class ChatService extends ChangeNotifier {
         .withAutomaticReconnect(retryDelays: [0, 2000, 5000, 10000])
         .build();
 
-    connection!.on('ReceiveMessage', (args) {
-      _handleMessage(args);
-    });
-
-    connection!.on('receiveMessage', (args) {
-      _handleMessage(args);
-    });
+    connection!.on('ReceiveMessage', (args) => _handleMessage(args, streamNanoId));
+    connection!.on('receiveMessage', (args) => _handleMessage(args, streamNanoId));
 
     connection!.on('ViewerCountUpdated', (args) {
       if (args != null && args.isNotEmpty) {
@@ -71,7 +74,7 @@ class ChatService extends ChangeNotifier {
     }
   }
 
-  void _handleMessage(List<Object?>? args) {
+  void _handleMessage(List<Object?>? args, String streamNanoId) {
     if (args == null || args.isEmpty) return;
     final raw = args[0];
     Map<String, dynamic> msg = {};
@@ -89,16 +92,23 @@ class ChatService extends ChangeNotifier {
     final key = id.isNotEmpty ? id : '$username|$content|${DateTime.now().millisecondsSinceEpoch ~/ 2000}';
     if (_seen.contains(key)) return;
     _seen.add(key);
-    if (_seen.length > 300) _seen.remove(_seen.first);
+    if (_seen.length > 400) _seen.remove(_seen.first);
 
-    messages.add({
+    final entry = {
+      'key': key,
       'username': username,
       'content': content,
       'isBroadcaster': msg['isBroadcaster'] == true,
       'isModerator': msg['isModerator'] == true,
       'isVip': msg['isVip'] == true || msg['vip'] == true || msg['isVIP'] == true,
-    });
-    if (messages.length > 150) messages.removeAt(0);
+    };
+
+    messages.add(entry);
+    if (messages.length > 200) messages.removeAt(0);
+
+    // Save to cache
+    _cache[streamNanoId] = List<Map<String, dynamic>>.from(messages);
+
     notifyListeners();
   }
 
@@ -106,7 +116,6 @@ class ChatService extends ChangeNotifier {
     if (connection == null || !connected) return;
     try {
       await connection!.invoke('SendMessage', args: [streamNanoId, message]);
-      // Do not add locally — the server will echo it back via ReceiveMessage
     } catch (e) {
       error = e.toString();
       notifyListeners();
