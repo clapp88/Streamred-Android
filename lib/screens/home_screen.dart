@@ -92,7 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: openFlyers,
             icon: Image.network(
               'https://88flyers.st/wp-content/uploads/2026/10/88FLYERS-wide_dark.png',
-              height: 28,
+              height: 24,
+              width: 70,
+              fit: BoxFit.contain,
               errorBuilder: (_, __, ___) => const Icon(Icons.link),
             ),
             tooltip: '88 Flyers',
@@ -101,7 +103,9 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: openMerch,
             icon: Image.network(
               'https://88merch.st/wp-content/uploads/2025/04/88-MERCH-512px-scaled.png',
-              height: 28,
+              height: 24,
+              width: 70,
+              fit: BoxFit.contain,
               errorBuilder: (_, __, ___) => const Icon(Icons.shopping_bag),
             ),
             tooltip: '88 Merch',
