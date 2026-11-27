@@ -18,14 +18,14 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.50.1'
           channel: 'stable'
 
       - name: Get dependencies
         run: flutter pub get
 
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --target-platform android-arm64 --split-per-abi
 
       - name: Get version
         id: version
@@ -39,7 +39,7 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: Streamred ${{ steps.version.outputs.version }}
-          files: build/app/outputs/flutter-apk/app-release.apk
+          files: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
           generate_release_notes: true
           fail_on_unmatched_files: false
         env:
