@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/api_service.dart';
 import 'categories_screen.dart';
-import 'streamers_screen.dart';
 import 'shorts_viewer.dart';
 import 'channel_screen.dart';
 import 'stream_screen.dart';
@@ -64,6 +63,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> openEmail() async {
+    final uri = Uri.parse('mailto:contact@88streams.st?subject=Support%20Request');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
   Future<void> openFlyers() async {
     final uri = Uri.parse('https://88flyers.st/');
     if (await canLaunchUrl(uri)) {
@@ -114,10 +120,6 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoriesScreen())),
             child: const Text('Categories', style: TextStyle(fontSize: 16)),
           ),
-          TextButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StreamersScreen())),
-            child: const Text('Streamers', style: TextStyle(fontSize: 16)),
-          ),
         ],
       ),
       body: loading
@@ -126,6 +128,21 @@ class _HomeScreenState extends State<HomeScreen> {
               onRefresh: load,
               child: ListView(
                 children: [
+                  if (live.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[900],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'Streamers are taking a break and will return soon',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                    ),
                   if (live.isNotEmpty) ...[
                     const Padding(padding: EdgeInsets.fromLTRB(16, 16, 16, 8), child: Text('Live Now', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
                     ...live.map((s) => _Card(data: s, onTap: () => openItem(s), onChannel: () => openChannel(s['channelName']))),
@@ -153,6 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       IconButton(icon: const Icon(Icons.send, size: 28), tooltip: 'Telegram', onPressed: () => openUrl('https://t.me/Official88Streams')),
                       IconButton(icon: const Icon(Icons.camera_alt, size: 28), tooltip: 'Instagram', onPressed: () => openUrl('https://instagram.com/88streams.official')),
                       IconButton(icon: const Icon(Icons.music_note, size: 28), tooltip: 'TikTok', onPressed: () => openUrl('https://tiktok.com/@88streams')),
+                      IconButton(icon: const Icon(Icons.email, size: 28), tooltip: 'Support', onPressed: openEmail),
                     ],
                   ),
                   const SizedBox(height: 16),
