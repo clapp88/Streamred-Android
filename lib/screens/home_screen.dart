@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -29,7 +30,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> load() async {
     final api = context.read<ApiService>();
     final s = await api.getStreams(limit: 30);
-    final sh = await api.getShorts(limit: 20);
+    final sh = await api.getShorts(limit: 50);
+    sh.shuffle(Random());
     if (mounted) {
       setState(() {
         streams = s;

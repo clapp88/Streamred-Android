@@ -135,8 +135,8 @@ class ApiService extends ChangeNotifier {
       final encoded = Uri.encodeComponent(idOrName);
       final urls = [
         '$baseUrl/api/categories/$encoded/browse',
-        '$baseUrl/api/videos?category=$encoded&limit=40',
-        '$baseUrl/api/streams?category=$encoded&limit=40',
+        '$baseUrl/api/videos?category=$encoded&limit=150',
+        '$baseUrl/api/streams?category=$encoded&limit=150',
       ];
       for (final url in urls) {
         final res = await http.get(Uri.parse(url), headers: headers);
@@ -169,7 +169,7 @@ class ApiService extends ChangeNotifier {
     } catch (_) {}
   }
 
-  Future<List> getShorts({int limit = 20}) async {
+  Future<List> getShorts({int limit = 80}) async {
     try {
       final res = await http.get(Uri.parse('$baseUrl/api/shorts?limit=$limit'), headers: headers);
       if (res.statusCode == 200) {
