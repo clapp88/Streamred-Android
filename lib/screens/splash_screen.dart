@@ -4,6 +4,7 @@ import 'package:video_player/video_player.dart';
 import 'main_screen.dart';
 import 'login_screen.dart';
 import '../services/api_service.dart';
+import '../services/update_service.dart';
 import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -31,7 +32,6 @@ class _SplashScreenState extends State<SplashScreen> {
         _next();
       }
     });
-    // Fallback in case video ends early or fails
     Future.delayed(const Duration(milliseconds: 2500), _next);
   }
 
@@ -39,6 +39,10 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _next() async {
     if (_navigated || !mounted) return;
     _navigated = true;
+
+    // Check for updates after splash
+    await UpdateService.checkForUpdate(context);
+
     final prefs = await SharedPreferences.getInstance();
     final agreed = prefs.getBool('age_agreed') ?? false;
     if (!mounted) return;
